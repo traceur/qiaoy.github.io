@@ -2,11 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>记事录</title>
   
-  <subtitle>自留地</subtitle>
+  <subtitle>技术工人的自留地</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://www.qiaoyue.net/"/>
-  <updated>2020-01-21T03:39:33.651Z</updated>
+  <updated>2020-03-18T12:28:11.908Z</updated>
   <id>https://www.qiaoyue.net/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://www.qiaoyue.net/2019/%E5%85%B3%E4%BA%8E%E7%94%B5%E5%95%86%E4%B8%9A%E5%8A%A1%E5%AE%89%E5%85%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E7%B4%A2/"/>
     <id>https://www.qiaoyue.net/2019/关于电商业务安全的一些思索/</id>
     <published>2019-11-08T03:32:14.000Z</published>
-    <updated>2020-01-21T03:39:33.651Z</updated>
+    <updated>2020-03-18T12:28:11.908Z</updated>
     
     <summary type="html">
     
@@ -49,7 +49,7 @@
     <link href="https://www.qiaoyue.net/2019/%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%A7%A3%E5%AF%86%E6%96%B9%E6%A1%88/"/>
     <id>https://www.qiaoyue.net/2019/企业数据加解密方案/</id>
     <published>2019-07-17T07:13:00.000Z</published>
-    <updated>2019-07-17T12:46:24.643Z</updated>
+    <updated>2020-01-27T03:31:01.550Z</updated>
     
     <summary type="html">
     
@@ -66,9 +66,9 @@
       <category term="Security" scheme="https://www.qiaoyue.net/categories/Security/"/>
     
     
-      <category term="Data Security" scheme="https://www.qiaoyue.net/tags/Data-Security/"/>
-    
       <category term="Security" scheme="https://www.qiaoyue.net/tags/Security/"/>
+    
+      <category term="Data Security" scheme="https://www.qiaoyue.net/tags/Data-Security/"/>
     
   </entry>
   
@@ -77,7 +77,7 @@
     <link href="https://www.qiaoyue.net/2019/WAF%E7%BB%95%E8%BF%87%E7%9A%84%E6%8D%B7%E5%BE%84%E4%B8%8E%E6%96%B9%E6%B3%95/"/>
     <id>https://www.qiaoyue.net/2019/WAF绕过的捷径与方法/</id>
     <published>2019-01-15T08:51:31.000Z</published>
-    <updated>2019-02-28T06:16:05.532Z</updated>
+    <updated>2020-01-27T03:31:54.321Z</updated>
     
     <summary type="html">
     
@@ -94,9 +94,9 @@
       <category term="Security" scheme="https://www.qiaoyue.net/categories/Security/"/>
     
     
-      <category term="Security" scheme="https://www.qiaoyue.net/tags/Security/"/>
-    
       <category term="WAF" scheme="https://www.qiaoyue.net/tags/WAF/"/>
+    
+      <category term="Security" scheme="https://www.qiaoyue.net/tags/Security/"/>
     
   </entry>
   
