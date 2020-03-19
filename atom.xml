@@ -66,9 +66,9 @@
       <category term="Security" scheme="https://www.qiaoyue.net/categories/Security/"/>
     
     
-      <category term="Security" scheme="https://www.qiaoyue.net/tags/Security/"/>
-    
       <category term="Data Security" scheme="https://www.qiaoyue.net/tags/Data-Security/"/>
+    
+      <category term="Security" scheme="https://www.qiaoyue.net/tags/Security/"/>
     
   </entry>
   
@@ -94,9 +94,9 @@
       <category term="Security" scheme="https://www.qiaoyue.net/categories/Security/"/>
     
     
-      <category term="WAF" scheme="https://www.qiaoyue.net/tags/WAF/"/>
-    
       <category term="Security" scheme="https://www.qiaoyue.net/tags/Security/"/>
+    
+      <category term="WAF" scheme="https://www.qiaoyue.net/tags/WAF/"/>
     
   </entry>
   
