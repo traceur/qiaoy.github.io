@@ -44,57 +44,56 @@
     <span class="taglist">  &middot; 
     
     
-      <a href="/tags/Security/">Security</a> 
-    
       <a href="/tags/WAF/">WAF</a> 
+    
+      <a href="/tags/Security/">Security</a> 
     
     </span>
   
 
   <h1 class="post-title">WAF绕过的捷径与方法</h1>
   <section class="post-content article-entry">
-    <h2 id="关于WAF"><a href="#关于WAF" class="headerlink" title="关于WAF"></a>关于WAF</h2><p> 在企业架构中，安全体系同剥洋葱一般，由外及内是由一层层的安全产品和规范构成，越处于外层承重越大，WAF属七层防护的第一道墙，随着互联网技术发展，业务对外提供服务的方式逐渐收拢，Web接口与应用垄断流量，WAF成了安全战场中被炮火攻击最惨烈的前线。</p>
-<h2 id="痼疾"><a href="#痼疾" class="headerlink" title="痼疾"></a>痼疾</h2><p>  虽然WAF属于较成熟的安全产品，但不同公司，不同场景都可能衍生出不同的部署方式，一个关键原因就是安全、效率、成本的不可能三角，互联网公司中，效率代表产品的易用性和响应时间，往往很难有较大牺牲，成本和安全的组合形式决定了安全产品架构的不同，即便在倾向选择中安全成为首位，WAF产品本身也有痼疾：HTTP协议和业务场景的复杂性导致很难有统一的策略规范，加之WAF抽离于业务代码逻辑以外，这些耦合上的瑕疵很容易成为绕过WAF防护的突破口。<br>  再者，不管是基于正则匹配还是机器学习，考量WAF的指标永远是相互矛盾的：误报率，漏报率。在安全和效率(业务)的博弈中，没有完美，只有适配，这也就决定了WAF的定位。</p>
-<h2 id="WAF绕过"><a href="#WAF绕过" class="headerlink" title="WAF绕过"></a>WAF绕过</h2><p>  WAF的痼疾在越来越复杂的系统对接中存在耦合缺漏，不同类型的漏洞，在WAF的Bypass测试中关注点自然也不同，本文尝试找寻一些规则对抗以外的捷径进行bypass，通过以下几个维度进行尝试：</p>
+    <h2 id="关于WAF"><a href="#关于WAF" class="headerlink" title="关于WAF"></a>关于WAF</h2><p>&emsp;&emsp;在企业架构中，安全体系同剥洋葱一般，由外及内是由一层层的安全产品和规范构成，越处于外层承重越大，WAF属七层防护的第一道墙，随着互联网技术发展，业务对外提供服务的方式逐渐收拢，Web接口与应用垄断流量，WAF成了安全战场中被炮火攻击最惨烈的前线。</p>
+<h2 id="痼疾"><a href="#痼疾" class="headerlink" title="痼疾"></a>痼疾</h2><p>&emsp;&emsp;虽然WAF属于较成熟的安全产品，但不同公司，不同场景都可能衍生出不同的部署方式，一个关键原因就是安全、效率、成本的不可能三角，互联网公司中，效率代表产品的易用性和响应时间，往往很难有较大牺牲，成本和安全的组合形式决定了安全产品架构的不同，即便在倾向选择中安全成为首位，WAF产品本身也有痼疾：HTTP协议和业务场景的复杂性导致很难有统一的策略规范，加之WAF抽离于业务代码逻辑以外，这些耦合上的瑕疵很容易成为绕过WAF防护的突破口。<br>&emsp;&emsp;再者，不管是基于正则匹配还是机器学习，考量WAF的指标永远是相互矛盾的：误报率，漏报率。在安全和效率(业务)的博弈中，没有完美，只有适配，这也就决定了WAF的定位。</p>
+<h2 id="WAF绕过"><a href="#WAF绕过" class="headerlink" title="WAF绕过"></a>WAF绕过</h2><p>&emsp;&emsp;WAF的痼疾在越来越复杂的系统对接中存在耦合缺漏，不同类型的漏洞，在WAF的Bypass测试中关注点自然也不同，本文尝试找寻一些规则对抗以外的捷径进行bypass，通过以下几个维度进行尝试：</p>
 <ul>
 <li>架构层面</li>
 <li>协议/中间件层面</li>
 <li>系统/数据库/编程语言层面</li>
 </ul>
-<h3 id="架构层面"><a href="#架构层面" class="headerlink" title="架构层面"></a>架构层面</h3><p>  在千奇百怪的WAF架构中，始终脱胎换骨于两种基础的架构：串联和旁路。</p>
-<h4 id="串联"><a href="#串联" class="headerlink" title="串联"></a>串联</h4><p>  串联WAF一般权重较高，对攻击的请求和会话有优先于业务的一票否决权，是最为常见的WAF架构方式，不过串联接入业务意味着WAF系统会捆绑、分担业务指标，在日益追求高响应的复杂链路中强行增加了一个单点故障隐患，那考核运维健壮性的指标(可用性、响应耗时和故障率等)将是悬置WAF头顶的达摩克利斯之剑。<br>  串联WAF根据产品形态又有多种变形，常见的区分方式看设备部署位置。<br>  传统的硬件盒子设备一般放置在网关入口后，业务中间件之前，串联部署方式有透明模式、反向代理模式等，其前置于中间件，意味着WAF需预留很大一部分性能来处理HTTP拆解和封装的工作，尤其是当下HTTPS已成为普遍场景，设备处理性能急剧下降，使得此类架构的成本投入极大。<br>  <img src="/2019/WAF绕过的捷径与方法/透明连接.png" alt="透明连接"><br>  <center>透明连接模式</center><br>  <img src="/2019/WAF绕过的捷径与方法/反向代理.png" alt="反向代理模式"><br>  <center>反向代理模式</center><br>  当下云厂商最常用修改域名CNAME做多维安全防护的架构同硬件类部署方式在应用场景视角是一致的，不过云厂商的设备和网络资源丰富，人才资源配备到位，又有大厂品牌背书，只要有足够的用户均摊成本，这种架构算在成本、效率、安全不可能三角中属协调最优的解决方案。<br>  <img src="/2019/WAF绕过的捷径与方法/cname架构.png" alt="CNAME架构"><br>   <center>CNAME架构</center></p>
-<p> 对于此类前置串联架构的ByPass测试需找寻WAF与中间件、后端业务间的耦合性缺漏，比如：</p>
+<h3 id="架构层面"><a href="#架构层面" class="headerlink" title="架构层面"></a>架构层面</h3><p>&emsp;&emsp;在千奇百怪的WAF架构中，始终脱胎换骨于两种基础的架构：串联和旁路。</p>
+<h4 id="串联"><a href="#串联" class="headerlink" title="串联"></a>串联</h4><p>&emsp;&emsp;串联WAF一般权重较高，对攻击的请求和会话有优先于业务的一票否决权，是最为常见的WAF架构方式，不过串联接入业务意味着WAF系统会捆绑、分担业务指标，在日益追求高响应的复杂链路中强行增加了一个单点故障隐患，那考核运维健壮性的指标(可用性、响应耗时和故障率等)将是悬置WAF头顶的达摩克利斯之剑。<br>&emsp;&emsp;串联WAF根据产品形态又有多种变形，常见的区分方式看设备部署位置。<br>&emsp;&emsp;传统的硬件盒子设备一般放置在网关入口后，业务中间件之前，串联部署方式有透明模式、反向代理模式等，其前置于中间件，意味着WAF需预留很大一部分性能来处理HTTP拆解和封装的工作，尤其是当下HTTPS已成为普遍场景，设备处理性能急剧下降，使得此类架构的成本投入极大。<br>  <img src="/2019/WAF绕过的捷径与方法/透明连接.png" alt="透明连接"><br>  <center>透明连接模式</center><br>  <img src="/2019/WAF绕过的捷径与方法/反向代理.png" alt="反向代理模式"><br>  <center>反向代理模式</center><br>&emsp;&emsp;当下云厂商最常用修改域名CNAME做多维安全防护的架构同硬件类部署方式在应用场景视角是一致的，不过云厂商的设备和网络资源丰富，人才资源配备到位，又有大厂品牌背书，只要有足够的用户均摊成本，这种架构算在成本、效率、安全不可能三角中属协调最优的解决方案。<br>  <img src="/2019/WAF绕过的捷径与方法/cname架构.png" alt="CNAME架构"><br>   <center>CNAME架构</center></p>
+<p> &emsp;&emsp;对于此类前置串联架构的ByPass测试需找寻WAF与中间件、后端业务间的耦合性缺漏，比如：</p>
 <ol>
 <li>在使用了SSL套接字的会话中，协商加密算法属请求方可控，WAF和后端业务在算法支持上可能存在差异的一个切入点，遍历后端业务支持但WAF不支持的加密算法，便可直接绕过WAF了，相关工具见Github：<a href="https://github.com/LandGrey/abuse-ssl-bypass-waf；" target="_blank" rel="noopener">https://github.com/LandGrey/abuse-ssl-bypass-waf；</a><br><img src="/2019/WAF绕过的捷径与方法/SSL-Bypass.png" alt="SSL Bypass"><center>SSL Bypass</center></li>
 <li>针对CNAME方式接入WAF的系统，能否绕过的关键在于后端的业务配置是否严谨，如果后端业务未限制访问源，很容易通过域名解析历史和<a href="http://zone.secbug.net/content/18058.html" target="_blank" rel="noopener">大规模的扫描</a>定位到真实的IP地址，修改本地HOST便可以绕过WAF直接对后端系统进行攻击；</li>
 <li><p>WAF与中间件的耦合缺漏在后续的中间件层面做详细讲解，此处不做赘述。</p>
-<p>还有另一类串联的部署方式，即WAF设备位置后移，嵌套到中间件上，这样WAF的损耗将分摊到业务机器，这样的捆绑意味着一荣俱荣，一损皆损，又因位置后移到了业务侧，策略下发和管理都极其复杂，且中间件种类繁多，规模一大，这种架构堪称灾难，而随着业务架构的逐渐优化，一般的互联网业务架构会前置越来越轻的转发层，将WAF嵌到转发层，或在转发层通过openresty等方式将请求过一遍旁挂的WAF集群，这属对业务链路侵入最轻的一种方式，很多互联网公司自建的WAF采用该架构。<br><img src="/2019/WAF绕过的捷径与方法/中间件部署.png" alt="中间件部署"></p>
+<p>&emsp;&emsp;还有另一类串联的部署方式，即WAF设备位置后移，嵌套到中间件上，这样WAF的损耗将分摊到业务机器，这样的捆绑意味着一荣俱荣，一损皆损，又因位置后移到了业务侧，策略下发和管理都极其复杂，且中间件种类繁多，规模一大，这种架构堪称灾难，而随着业务架构的逐渐优化，一般的互联网业务架构会前置越来越轻的转发层，将WAF嵌到转发层，或在转发层通过openresty等方式将请求过一遍旁挂的WAF集群，这属对业务链路侵入最轻的一种方式，很多互联网公司自建的WAF采用该架构。<br><img src="/2019/WAF绕过的捷径与方法/中间件部署.png" alt="中间件部署"></p>
 <center>中间件部署</center><br><img src="/2019/WAF绕过的捷径与方法/OpenResty部署.png" alt="OpenResty部署"><br><center>OpenResty部署</center>
 
-<p>对于此类嵌套于中间件的WAF架构测试需针对WAF模块的系统耗能和超时为切入点，当中间件或WAF模块达到一定的性能损耗指标，一般WAF系统会预留类似硬件设备断电bypass的功能来保障业务可用性的强指标，通过这种途径即可突破WAF，比如：</p>
+<p>&emsp;&emsp;对于此类嵌套于中间件的WAF架构测试需针对WAF模块的系统耗能和超时为切入点，当中间件或WAF模块达到一定的性能损耗指标，一般WAF系统会预留类似硬件设备断电bypass的功能来保障业务可用性的强指标，通过这种途径即可突破WAF，比如：</p>
 </li>
 <li>针对中间件本身的漏洞(例如:CVE-2018-1336)/配置错误来触发DOS，当系统能耗达到阈值，自动关闭WAF模块；</li>
 <li>针对WAF系统的正则策略进行攻击，通过ReDoS(<a href="https://www.owasp.org/index.php/Regular_expression_Denial_of_Service_-_ReDoS" target="_blank" rel="noopener">https://www.owasp.org/index.php/Regular_expression_Denial_of_Service_-_ReDoS</a> )使策略检测超时，单条会话跳过WAF集群响应，直接通联后端业务。</li>
 </ol>
-<h4 id="旁路"><a href="#旁路" class="headerlink" title="旁路"></a>旁路</h4><p>旁挂WAF一般不在会话链路以内，这意味着针对命令执行、Getshell类的一条语句拿权限的攻击束手无策，满足业务性能，牺牲了较多的安全指标，做出这种妥协，一方面是业务/运维强势，可用性是相关部门较重的KPI指标，另一方面可能是WAF系统开发和运营人力资源紧张，旁路离线分析提供了一定的缓和空间。<br>旁路WAF可以理解为一套离线分析系统，在各类配置和参数设置上很难同业务机器同步，这导致两者之间的耦合缺漏会更大，且旁路部署的后置阻断措施也极具多样性：IP维度(4层封禁、7封封禁)，session维度(业务路由基于登陆的cookies等)，给绕过也提供了一些方法，常见的绕过方法有：</p>
+<h4 id="旁路"><a href="#旁路" class="headerlink" title="旁路"></a>旁路</h4><p>&emsp;&emsp;旁挂WAF一般不在会话链路以内，这意味着针对命令执行、Getshell类的一条语句拿权限的攻击束手无策，满足业务性能，牺牲了较多的安全指标，做出这种妥协，一方面是业务/运维强势，可用性是相关部门较重的KPI指标，另一方面可能是WAF系统开发和运营人力资源紧张，旁路离线分析提供了一定的缓和空间。<br>&emsp;&emsp;旁路WAF可以理解为一套离线分析系统，在各类配置和参数设置上很难同业务机器同步，这导致两者之间的耦合缺漏会更大，且旁路部署的后置阻断措施也极具多样性：IP维度(4层封禁、7封封禁)，session维度(业务路由基于登陆的cookies等)，给绕过也提供了一些方法，常见的绕过方法有：</p>
 <ol>
 <li>若系统是通过分光等方式旁挂，那针对前置串联WAF的SSL证书绕过方法在这里一样通用；</li>
 <li>通过攻击测试，很容易判断出旁路WAF同阻断组件的通联时间，获取海量且廉价的代理IP，控制好单IP的测试存活时间，较低成本便可绕过；</li>
-<li>针对异常协议和中间件特效的攻击将在后续章节讲述，在旁挂WAF上均可实现绕过。</li>
+<li>针对异常协议和中间件特效的攻击将在后续章节讲述，在旁挂WAF上均可实现绕过。<br>&emsp;&emsp;WAF产品架构多样，除了串联和旁路外，基于业务特性还有各种各样的组合方式，之前所在公司基于业务架构单一的特点(系统、语言、中间件、数据库版本等相关信息全局一致)，只需要关注固定版本的系统/应用漏洞情报，便可采用平日旁挂，漏洞爆发打开串联开关，漏洞批量修复后恢复旁挂的方式，在安全、效率、成本的博弈中发挥一点能动性。</li>
 </ol>
-<p>WAF产品架构多样，除了串联和旁路外，基于业务特性还有各种各样的组合方式，之前所在公司基于业务架构单一的特点(系统、语言、中间件、数据库版本等相关信息全局一致)，只需要关注固定版本的系统/应用漏洞情报，便可采用平日旁挂，漏洞爆发打开串联开关，漏洞批量修复后恢复旁挂的方式，在安全、效率、成本的博弈中发挥一点能动性。</p>
-<h3 id="协议-中间件层面"><a href="#协议-中间件层面" class="headerlink" title="协议/中间件层面"></a>协议/中间件层面</h3><p>HTTP协议是一个渐进工程。</p>
+<h3 id="协议-中间件层面"><a href="#协议-中间件层面" class="headerlink" title="协议/中间件层面"></a>协议/中间件层面</h3><p>&emsp;&emsp;HTTP协议是一个渐进工程。</p>
 <blockquote>
 <p>1991初版草案(HTTP/0.9)仅有不足一页半的内容，在经历5年时间和若干版本的更替后，第一个正式版HTTP/1.0标准诞生，这时它已经变成一份密密麻麻长达50页的文档，期望能弥补过往标准里的诸多缺陷。很快到了1999年，HTTP/1.1的7位署名作者显然指望该协议能涵盖到方方面面，导致的结果就是一份长达150页的大作。但这些越来越宏伟的文档里很大篇幅的内容和我们当下实际使用的Web并不特别相关，因为他们对新功能的追逐比修复旧有缺陷更感兴趣。—— 《Web之困》</p>
 </blockquote>
-<p>  处于尚未完结的渐进工程中，强制的向下兼容，加之各类中间件对协议的解读和实现花样百出，导致整个协议骨干健壮清晰，细枝末节处却错综繁杂，越是复杂有异议的地方，越是存在安全隐患。<br>如《Web之困》书中所描述，协议版本的升级，大多数精力都投入到了新花样和动人功能的开发上，缺陷的修补向来是不受人待见的，而协议侧的缺陷却往往是致命的。<br>DEFCON 24 会议上，regilero有一篇名为《Hiding Wookiees In Http》的演讲，详细分析了HTTP协议中Keepalives和Pipelines组合使用上的缺漏，可导致会话注入和缓存投毒，在WAF绕过上也提供了一条路径。<br>Keepalives虽然在HTTP1.0版本便可以使用，但并没有得到官方的确认，是浏览器爆炸发展阶段的民间战胜官方的胜利，HTTP1.1版本后才开始作为默认参数参与到请求中，这条参数也属于新版本令人心动的崭新功能，引入的原因也是为了解决请求量级斗升，新建立连接带来的系统和网络损耗，功能大致如下所示：<br>  <img src="/2019/WAF绕过的捷径与方法/HTTP pip.png" alt="HTTP pip"></p>
+<p>&emsp;&emsp;处于尚未完结的渐进工程中，强制的向下兼容，加之各类中间件对协议的解读和实现花样百出，导致整个协议骨干健壮清晰，细枝末节处却错综繁杂，越是复杂有异议的地方，越是存在安全隐患。<br>&emsp;&emsp;如《Web之困》书中所描述，协议版本的升级，大多数精力都投入到了新花样和动人功能的开发上，缺陷的修补向来是不受人待见的，而协议侧的缺陷却往往是致命的。<br>&emsp;&emsp;DEFCON 24 会议上，regilero有一篇名为《Hiding Wookiees In Http》的演讲，详细分析了HTTP协议中Keepalives和Pipelines组合使用上的缺漏，可导致会话注入和缓存投毒，在WAF绕过上也提供了一条路径。<br>&emsp;&emsp;Keepalives虽然在HTTP1.0版本便可以使用，但并没有得到官方的确认，是浏览器爆炸发展阶段的民间战胜官方的胜利，HTTP1.1版本后才开始作为默认参数参与到请求中，这条参数也属于新版本令人心动的崭新功能，引入的原因也是为了解决请求量级斗升，新建立连接带来的系统和网络损耗，功能大致如下所示：<br>  <img src="/2019/WAF绕过的捷径与方法/HTTP pip.png" alt="HTTP pip"></p>
   <center>HTTP pip</center><br>  <img src="/2019/WAF绕过的捷径与方法/HTTP1.0+.png" alt="HTTP pip"><br>  <center>HTTP pip</center><br>  <img src="/2019/WAF绕过的捷径与方法/HTTP1.0-.png" alt="HTTP pip"><br>  <center>HTTP pip</center>
 
-<p>  功能设计本身的意图是多请求单连接，但‘多请求’这个场景又有多般演绎，比如下图这种请求，在WAF端的识别上，这属于一个请求，逻辑也是通过拆解Key、value的模式以Body内容读取第二个请求的内容，当然是属于异常的Key-Value结构，这样第二个包的内容便很容易绕过WAF策略直接进行攻击了。<br>  <img src="/2019/WAF绕过的捷径与方法/keeplive绕过.png" alt="Keeplive 绕过"></p>
+<p>&emsp;&emsp;功能设计本身的意图是多请求单连接，但‘多请求’这个场景又有多般演绎，比如下图这种请求，在WAF端的识别上，这属于一个请求，逻辑也是通过拆解Key、value的模式以Body内容读取第二个请求的内容，当然是属于异常的Key-Value结构，这样第二个包的内容便很容易绕过WAF策略直接进行攻击了。<br>  <img src="/2019/WAF绕过的捷径与方法/keeplive绕过.png" alt="Keeplive 绕过"></p>
   <center>Keeplive 绕过</center>
 
-<p>  关于HTTP协议特性的安全缺陷，还有一个值得说道的漏洞，2011年BlackHat大会有一篇名为《Checkmate with Denial of Service》的演讲，阐述了一系列DOS漏洞，其中有部分是关于HTTP慢速攻击的分析，此后漫长的一段时间中，slowloris都是诸多大型DDOS事件中的主角，关于慢速DOS的原理其实就是利用了HTTP的特性，通过Keepalives特性，发起大量请求，修改Content-Length，Hold住会话，在超时前定期发送小包，保持存活状态，使服务端线程数打满，又不得释放，服务便处于不可用状态，这种攻击在前文所述的针对中间件的DOS中不失为一种有效的攻击绕过方式。</p>
-<p>  除了协议特性以外，异变的HTTP header也有可能提供绕过WAF的捷径，2018年的AppSec大会上，有一篇《hacker WAF bypass techniques》的演讲，通过以下几个方式进行WAF绕过：</p>
+<p>&emsp;&emsp;关于HTTP协议特性的安全缺陷，还有一个值得说道的漏洞，2011年BlackHat大会有一篇名为《Checkmate with Denial of Service》的演讲，阐述了一系列DOS漏洞，其中有部分是关于HTTP慢速攻击的分析，此后漫长的一段时间中，slowloris都是诸多大型DDOS事件中的主角，关于慢速DOS的原理其实就是利用了HTTP的特性，通过Keepalives特性，发起大量请求，修改Content-Length，Hold住会话，在超时前定期发送小包，保持存活状态，使服务端线程数打满，又不得释放，服务便处于不可用状态，这种攻击在前文所述的针对中间件的DOS中不失为一种有效的攻击绕过方式。</p>
+<p>&emsp;&emsp;除了协议特性以外，异变的HTTP header也有可能提供绕过WAF的捷径，2018年的AppSec大会上，有一篇《hacker WAF bypass techniques》的演讲，通过以下几个方式进行WAF绕过：</p>
 <ol>
 <li><p>字符集编码；Content-Type头中使用charset定义字符集的应用场景不只有在responses中，request中同样可以使用，而变换字符编码集以后，基于规则引擎的WAF则彻底失控：<br><img src="/2019/WAF绕过的捷径与方法/编码格式.png" alt="编码格式"></p>
 <center>编码格式</center><br><img src="/2019/WAF绕过的捷径与方法/编码格式2.png" alt="编码格式"><br><br><center>编码格式</center>
@@ -102,14 +101,16 @@
 <li><p>内容类型格式；在特定中间件版本下Key-value可以通过文件上传的类型multipart/form-data进行提交，而WAF针对此类型侧检测一般是只针对上传漏洞，导致常规的xss、sqli便可以通过该方式进行bypass，即使存在各通用类型的漏洞检测，也可通过Fuzz异变上传类型的格式，达到WAF无法识别，后端中间件可以解析的目的：<br><img src="/2019/WAF绕过的捷径与方法/Body异变1.png" alt="Body异变"></p>
 <center>Body异变</center><br><img src="/2019/WAF绕过的捷径与方法/Body异变2.png" alt="Body异变"><br><center>Body异变</center><br><img src="/2019/WAF绕过的捷径与方法/Body异变3.png" alt="Body异变"><br><br><center>Body异变</center>
 
-<p>当然以上Bypass的路径并非通用的，很大情况与不同中间件对HTTP的理解和运用有关，详细中间件系统和版本测试情况可参见表格([<a href="https://drive.google.com/file/d/0B5Tqp73kQStQU1diV1Y0dzd1QU0/view])。" target="_blank" rel="noopener">https://drive.google.com/file/d/0B5Tqp73kQStQU1diV1Y0dzd1QU0/view])。</a><br>基于协议/中间件的安全缺陷并不全然是功能带来的，有时带业务特性的配置也会有缺漏，且这种缺漏是前端WAF和后端业务中间件功能差异所必然存在的，也是大多数通用WAF产品很难和业务适配的死角，突出的例子如：</p>
 </li>
+</ol>
+<p>&emsp;&emsp;当然以上Bypass的路径并非通用的，很大情况与不同中间件对HTTP的理解和运用有关，详细中间件系统和版本测试情况可参见表格([<a href="https://drive.google.com/file/d/0B5Tqp73kQStQU1diV1Y0dzd1QU0/view])。" target="_blank" rel="noopener">https://drive.google.com/file/d/0B5Tqp73kQStQU1diV1Y0dzd1QU0/view])。</a><br>&emsp;&emsp;基于协议/中间件的安全缺陷并不全然是功能带来的，有时带业务特性的配置也会有缺漏，且这种缺漏是前端WAF和后端业务中间件功能差异所必然存在的，也是大多数通用WAF产品很难和业务适配的死角，突出的例子如：</p>
+<ol>
 <li><p>请求包大小限制；很多后端业务存在上传功能，所以请求数据限制上往往会较大，而前置WAF系统，需要有较高的响应时间，请求包较大时往往超过内置的性能和耗时阈值，所以可直接发送大量无意义的参数，尾端带攻击参数便可直接绕过WAF系统。<br><img src="/2019/WAF绕过的捷径与方法/Nginx配置.png" alt="请求包大小设置"></p>
 <center>请求包大小设置</center>
 
 </li>
 </ol>
-<h3 id="系统-数据库-编程语言层面"><a href="#系统-数据库-编程语言层面" class="headerlink" title="系统/数据库/编程语言层面"></a>系统/数据库/编程语言层面</h3><p>  系统、数据库和编程语言层面，属于对抗WAF策略的正面战场，这类文章网上佳作不胜枚举，但其达成绕过的功效并不具通用性，比如系统级别的绕过可能围绕命令执行、LFI之类的漏洞，数据库相关的绕过是围绕Sqli类漏洞，且两者的绕过思路大致相同，即利用系统/数据库特性或不常用函数绕过WAF策略特征，至于编程语言的绕过方式则相对灵活，这也是动态语言的特性决定的，本文主旨是WAF绕过的捷径，正面对抗策略内容便不多做赘述(正面硬刚WAF规则也有成熟工具，详细内容参见参考文档中2016 blackhat大会上的《Another Brick off The Wall: Deconstructing Web Application Firewalls Using Automata Learning》一文)，每个类型各介绍一类比较有代表性的Bypass方法：</p>
+<h3 id="系统-数据库-编程语言层面"><a href="#系统-数据库-编程语言层面" class="headerlink" title="系统/数据库/编程语言层面"></a>系统/数据库/编程语言层面</h3><p>&emsp;&emsp;系统、数据库和编程语言层面，属于对抗WAF策略的正面战场，这类文章网上佳作不胜枚举，但其达成绕过的功效并不具通用性，比如系统级别的绕过可能围绕命令执行、LFI之类的漏洞，数据库相关的绕过是围绕Sqli类漏洞，且两者的绕过思路大致相同，即利用系统/数据库特性或不常用函数绕过WAF策略特征，至于编程语言的绕过方式则相对灵活，这也是动态语言的特性决定的，本文主旨是WAF绕过的捷径，正面对抗策略内容便不多做赘述(正面硬刚WAF规则也有成熟工具，详细内容参见参考文档中2016 blackhat大会上的《Another Brick off The Wall: Deconstructing Web Application Firewalls Using Automata Learning》一文)，每个类型各介绍一类比较有代表性的Bypass方法：</p>
 <ol>
 <li><p>系统层面，利用Linux通配符特性绕过WAF策略；在bash语法中，可以使用与系统文件相同数量的”?”,”/“来匹配该文件；用未初始化的变量隔离特征字符；用’字符拆解再拼贴，绕过字符匹配。<br><img src="/2019/WAF绕过的捷径与方法/通配符1.png" alt="通配符绕过"></p>
 <center>通配符绕过</center><br><img src="/2019/WAF绕过的捷径与方法/通配符2.png" alt="通配符绕过"><br><center>通配符绕过</center><br><img src="/2019/WAF绕过的捷径与方法/通配符3.png" alt="通配符绕过"><br><br><center>通配符绕过</center>
@@ -124,9 +125,9 @@
 <li><p>编程语言层面，利用PHP数组特性绕过WAF策略；在PHP中每个字符串都可以当作数组，这样基于字符串的正则匹配就很容易被绕过了。<br><img src="/2019/WAF绕过的捷径与方法/编程语言.png" alt="编程语言绕过"></p>
 <center>编程语言绕过</center><br><img src="/2019/WAF绕过的捷径与方法/编程语言2.png" alt="编程语言绕过"><br><br><center>编程语言绕过</center>
 
-<p>限于文章篇幅，简单描述了WAF Bypass测试的整体框架，相当一部分绕过方法未能展示，由于议题宽泛，时间紧迫，故仓促收尾，算理清框架脉络，避免后来者按图索骥的浪费时间。</p>
 </li>
 </ol>
+<p>&emsp;&emsp;限于文章篇幅，简单描述了WAF Bypass测试的整体框架，相当一部分绕过方法未能展示，由于议题宽泛，时间紧迫，故仓促收尾，算理清框架脉络，避免后来者按图索骥的浪费时间。</p>
 <h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
 <li><a href="https://github.com/LandGrey/abuse-ssl-bypass-waf" target="_blank" rel="noopener">Abuse-ssl-bypass-waf</a></li>
 <li><a href="https://0x09al.github.io/waf/bypass/ssl/2018/07/02/web-application-firewall-bypass.html" target="_blank" rel="noopener">Bypassing Web-Application Firewalls by abusing SSL/TLS</a></li>
