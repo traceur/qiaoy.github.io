@@ -5,18 +5,20 @@
 /* Basic Typography */
 @font-face {
     font-family: 'Open Sans';
-    src: url('../fonts/opensans-regular-webfont.eot');
+ 
+	src: url('../fonts/opensans-regular-webfont.eot'); 
     src: url('../fonts/opensans-regular-webfont.eot?#iefix') format('embedded-opentype'),
          url('../fonts/opensans-regular-webfont.woff') format('woff'),
          url('../fonts/opensans-regular-webfont.ttf') format('truetype'),
-         url('../fonts/opensans-regular-webfont.svg#OpenSansRegular') format('svg');
+         url('../fonts/opensans-regular-webfont.svg#OpenSansRegular') format('svg'); 
+
     font-weight: normal;
     font-style: normal;
 
 }
 @font-face {
   	font-family: 'Bree Serif';
-  	src: local('Bree Serif'), 
+】  	src: local('Bree Serif'), 
   		 local('BreeSerif-Regular'),
   		 url('../fonts/BreeSerif-Regular.ttf') format('truetype'),
   		 url('../fonts/BreeSerif-Regular.woff2') format('woff2');
@@ -130,7 +132,7 @@ ul, ol {
 }
 code {
 	/*for code highlighting */
-	font-size:1.2em;
+	font-size:1em;
 	background: #eee;
 }
 pre {
